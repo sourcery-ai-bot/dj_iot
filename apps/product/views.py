@@ -294,7 +294,7 @@ class HardWareFirmware(APIView):
             ctr_info = data.get('Ctr')
             dr_info = data.get('Dr')
             ble_info = data.get('Ble')
-            ble_status = data.get('Ble_status')
+            # ble_status = data.get('Ble_status')
             uuid_ascii_code = data.get('uuid_ascii_code')
 
             if not uuid_ascii_code:
@@ -319,6 +319,10 @@ class HardWareFirmware(APIView):
                 except Exception as e:
                     return Response({"status": RET.PARAMERR, "msg": str(e)})
                 serializer.save()
+
+            # 判断用户是否参与
+            if not self.get_user_permission(user, uuid_ascii_code):
+                return Response({"status": RET.ROLEERR, "msg": Info_Map[RET.ROLEERR]})
             # 处理数据
             db_url = Sidus_Dev_Database
             conn, cursor = SQLHepler.sql_multi_open(db_url)
@@ -329,12 +333,11 @@ class HardWareFirmware(APIView):
                 if dr_info:
                     dr_info.update(firmware_normal=0)
                     self.insert_data(user, cursor, **dr_info)
-                if ble_status:
-                    if int(ble_status) == 1:
-                        # 使用自定义蓝牙
-                        if ble_info:
-                            ble_info.update(firmware_normal=0)
-                            self.insert_data(user, cursor, **ble_info)
+
+                # 使用自定义蓝牙
+                if ble_info:
+                    ble_info.update(firmware_normal=0)
+                    self.insert_data(user, cursor, **ble_info)
 
                 # 更新当前的产品的使用状态product_status = 1
                 SQLHepler.sql_multi_execute(SQL_Status_Product, args=uuid_ascii_code, cursor=cursor)
@@ -349,7 +352,6 @@ class HardWareFirmware(APIView):
                 # 进行回滚操作
                 conn.rollback()
                 return Response({"status": RET.PARAMERR, "msg": str(e)})
-
             return Response({"status": RET.OK, "msg": Info_Map[RET.OK]})
         else:
             return Response({"status": RET.PARAMERR, "msg": Info_Map[RET.PARAMERR]})
@@ -385,7 +387,8 @@ class HardWareFirmware(APIView):
         SQLHepler.close(conn=conn, cursor=cursor)
         return Response({"status": RET.OK, "msg": Info_Map[RET.OK]})
 
-    def insert_data(self, user, cursor, **kwargs):
+    @staticmethod
+    def insert_data(user, cursor, **kwargs):
         uuid_ascii_code = kwargs.get('uuid_ascii_code')
         firmware_type = kwargs.get('firmware_type')
         hardware_version = kwargs.get('hardware_version')
@@ -394,33 +397,12 @@ class HardWareFirmware(APIView):
         # uuid_ascii_code 是否存在
         if not uuid_ascii_code:
             raise Exception('uuid不能为空')
-
         # 查询是否已经有存在
         res = SQLHepler.sql_multi_fetch_one(SQL_Update_Hardware_Firmware_Exist,
                                             (uuid_ascii_code, firmware_type, hardware_version, firmware_version),
                                             cursor=cursor)
         if int(res.get('count')) >= 1:
             # 更新数据
-            # 判断用户是否参与
-            # user_ids = [dic_id.get('pro_user') for dic_id in
-            #             ProdPartner.objects.filter(pro_uuid=uuid_ascii_code).values('pro_user')]
-            # # 不是管理员且没参与，直接返回
-            # product_instance = ProdPartner.objects.filter(pro_uuid=uuid_ascii_code).first()
-            # if product_instance:
-            #     # 找到部门
-            #     creator = product_instance.pro_create
-            #     # 找到部门
-            #     department_list = [c_user.get('id') for c_user in creator.department.values('id')]
-            #
-            #     # 添加部门的高级人员到参与者
-            #     temp_list = User.objects.filter(department__in=department_list, roles=2)
-            #
-            #     roles = [role_names['id'] for role_names in user.roles.all().values('id')]
-            #
-            #     if user != creator and user.id not in user_ids and user not in temp_list and min(roles) != 1:
-            #         raise ValueError('用户角色错误')
-            if not self.get_user_permission(user, uuid_ascii_code):
-                return Response({"status": RET.ROLEERR, "msg": Info_Map[RET.ROLEERR]})
             # 更新最后更新人员
             firmware_id = res.get('id')
             kwargs.update(firmware_updated_admin_name=user.first_name + " " + user.last_name, id=firmware_id)
@@ -549,6 +531,12 @@ class OperateFirmwareView(APIView):
             conn, cursor = SQLHepler.sql_multi_open(db_url)
             if firmware_type not in ['Ctr', 'Ble', 'Dr']:
                 return Response({"status": RET.PARAMERR, "msg": "Type Must Be 'Ctr','Ble' Or 'Dr'"})
+
+            res = SQLHepler.sql_multi_fetch_one(SQL_Hardware_Firmware_ID, id, cursor=cursor)
+
+            if not res:
+                return Response({"status": RET.PARAMERR, "msg": "Id Error"})
+
             SQLHepler.sql_multi_execute(SQL_Update_Hardware_Firmware_available,
                                         (uuid_ascii_code, firmware_type, hardware_version), cursor=cursor)
 

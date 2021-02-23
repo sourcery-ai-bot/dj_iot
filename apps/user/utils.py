@@ -27,11 +27,15 @@ class UserTokenAuthentication(JSONWebTokenAuthentication):
     def authenticate(self, request):
         # 采用drf获取token的手段 - HTTP_AUTHORIZATION - Authorization
         token = self.get_jwt_value(request)
-        if token is None:
-            return None
+
         # if not token:
         #     raise AUTHERROR(code=RET.NODATA, detail=Info_Map[RET.NODATA])
+
+        if token is None:
+            return None
         # drf-jwt认证校验算法
+        # print(token)
+        # print(request.path_info)
         try:
             payload = jwt_decode_handler(token)
             # 如需要在这里可以进行校验密码,功能待定
