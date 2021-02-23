@@ -147,11 +147,11 @@ SQL_Created_Hardware_Product_offered_series = """
 """
 # Client获取Sidus hardware firmware
 SQL_Hardware_avail_Firmware_Client = """
-    select id,firmware_type,firmware_normal,hardware_version,firmware_version,firmware_version_built_in,firmware_environment,firmware_available,firmware_detail_cns,firmware_detail_cnt,firmware_detail_en from sidusdb.tb_hardware_firmware where firmware_display=1 and firmware_available=1 and uuid_ascii_code = %s;
+    select id,firmware_type,firmware_normal,hardware_version,firmware_version,firmware_version_built_in,firmware_environment,firmware_available,firmware_detail_cns,firmware_detail_cnt,firmware_detail_en ,firmware_released_date,firmware_updated_time from sidusdb.tb_hardware_firmware where firmware_display=1 and firmware_available=1 and uuid_ascii_code = %s;
 """
 
 SQL_Hardware_Unavail_Firmware_Client = """
-    select id,firmware_type,firmware_normal,hardware_version,firmware_version,firmware_version_built_in,firmware_environment,firmware_available,firmware_detail_cns,firmware_detail_cnt,firmware_detail_en from sidusdb.tb_hardware_firmware where firmware_display=1 and uuid_ascii_code = %s and hardware_version = %s and firmware_type = %s and firmware_available = 0;
+    select id,firmware_type,firmware_normal,hardware_version,firmware_version,firmware_version_built_in,firmware_environment,firmware_available,firmware_detail_cns,firmware_detail_cnt,firmware_detail_en ,firmware_released_date,firmware_updated_time from sidusdb.tb_hardware_firmware where firmware_display=1 and uuid_ascii_code = %s and hardware_version = %s and firmware_type = %s and firmware_available = 0;
 """
 
 SQL_Hardware_Unavail_Ble_Firmware_Client = """
@@ -159,7 +159,7 @@ SQL_Hardware_Unavail_Ble_Firmware_Client = """
 """
 
 SQL_Hardware_Firmware_Blue_Client_Version = """
- select uuid_ascii_code,firmware_type,hardware_version,firmware_version_built_in,firmware_version,firmware_normal,firmware_environment,firmware_available,firmware_detail_en,firmware_detail_cns,firmware_detail_cnt from sidusdb.tb_hardware_firmware where uuid_ascii_code = 'normal' and firmware_type='Ble' and firmware_available=1 and firmware_normal=1 and firmware_display = 1 and hardware_version=%s;
+ select uuid_ascii_code,firmware_type,hardware_version,firmware_version_built_in,firmware_version,firmware_normal,firmware_environment,firmware_available,firmware_detail_en,firmware_detail_cns,firmware_detail_cnt ,firmware_released_date,firmware_updated_time from sidusdb.tb_hardware_firmware where uuid_ascii_code = 'normal' and firmware_type='Ble' and firmware_available=1 and firmware_normal=1 and firmware_display = 1 and hardware_version=%s;
 """
 
 SQL_Hardware_Firmware_Blue_Hardware_Client = """
@@ -175,7 +175,7 @@ SQL_Hardware_Firmware_Blue_Client = """
 *******Admin SQL**********
 """
 SQL_Hardware_Firmware = """
-    select id,firmware_type,firmware_available,firmware_status,hardware_version,firmware_version,firmware_display,firmware_normal,firmware_version_built_in,firmware_environment,firmware_detail_cns,firmware_detail_cnt,firmware_detail_en from sidusdb.tb_hardware_firmware where firmware_available=1 and uuid_ascii_code = %s;   
+    select id,firmware_type,firmware_available,firmware_status,hardware_version,firmware_version,firmware_display,firmware_normal,firmware_version_built_in,firmware_environment,firmware_detail_cns,firmware_detail_cnt,firmware_detail_en ,firmware_released_date,firmware_updated_time from sidusdb.tb_hardware_firmware where firmware_available=1 and uuid_ascii_code = %s;   
 """
 SQL_Hardware_Unavail_Firmware = """
     select id,firmware_type,firmware_available,firmware_status,hardware_version,firmware_version,firmware_display,firmware_normal,firmware_version_built_in,firmware_environment,firmware_detail_cns,firmware_detail_cnt,firmware_detail_en from sidusdb.tb_hardware_firmware where firmware_available=0 and uuid_ascii_code = %s and hardware_version = %s and firmware_type = %s;
@@ -245,7 +245,7 @@ SQL_Hardware_Firmware_Blue = """
 """
 
 SQL_Hardware_Firmware_Blue_Version = """
- select uuid_ascii_code,firmware_type,hardware_version,firmware_version_built_in,firmware_version,firmware_normal,firmware_environment,firmware_available,firmware_detail_en,firmware_detail_cns,firmware_detail_cnt from sidusdb.tb_hardware_firmware where uuid_ascii_code = 'normal' and firmware_type='Ble' and firmware_available=1 and firmware_normal=1 and hardware_version=%s;
+ select uuid_ascii_code,firmware_type,hardware_version,firmware_version_built_in,firmware_version,firmware_normal,firmware_environment,firmware_available,firmware_detail_en,firmware_detail_cns,firmware_detail_cnt  ,firmware_released_date,firmware_updated_time from sidusdb.tb_hardware_firmware where uuid_ascii_code = 'normal' and firmware_type='Ble' and firmware_available=1 and firmware_normal=1 and hardware_version=%s;
 """
 
 # 更新固件不带文件信息
@@ -304,3 +304,4 @@ SQL_User_Country = """
 SQL_IOT_COUNTRY = """
 insert into iot.sidus_country values(0,%(sidus_id)s,%(first_name)s,%(register_date)s,%(city)s,%(lat)s,%(lng)s,%(country)s,%(sys)s);
 """
+
