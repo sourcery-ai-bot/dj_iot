@@ -3,15 +3,6 @@ from django.db import models
 from user.models import User
 
 
-class Product(BaseModel):
-    product_name = models.CharField(max_length=125, default='', null=False, blank=False, verbose_name='产品名称')
-
-    class Meta:
-        db_table = 'tb_product'
-        verbose_name = '产品'
-        verbose_name_plural = verbose_name
-
-
 class ProdPartner(BaseModel):
     pro_uuid = models.CharField(max_length=125, unique=True, default='', null=False, blank=False, verbose_name='uuid')
     pro_user = models.ManyToManyField(User, related_name='product', blank=True, verbose_name=u'参与用户')

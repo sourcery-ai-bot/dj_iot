@@ -24,6 +24,7 @@ class RET:
     SESSIONERR = "4111"
     LOGINERR = "4112"
     DEPARTMENTNOTEXIST = '4113'
+    DEPARTMENTEXIST = '4114'
 
     PWDTYPEERR = '4122'
     PWDCOMMITERR = '4123'
@@ -67,6 +68,7 @@ Info_Map = {
     RET.VERIFYCODEERR: u"验证码错误或过期",
 
     RET.DEPARTMENTNOTEXIST: u'部门不存在',
+    RET.DEPARTMENTEXIST: u'部门已存在',
 
     RET.REQERR: u"非法请求或请求次数受限",
     RET.IPERR: u"IP受限",
