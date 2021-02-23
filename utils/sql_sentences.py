@@ -178,7 +178,7 @@ SQL_Hardware_Firmware = """
     select id,firmware_type,firmware_available,firmware_status,hardware_version,firmware_version,firmware_display,firmware_normal,firmware_version_built_in,firmware_environment,firmware_detail_cns,firmware_detail_cnt,firmware_detail_en ,firmware_released_date,firmware_updated_time from sidusdb.tb_hardware_firmware where firmware_available=1 and uuid_ascii_code = %s;   
 """
 SQL_Hardware_Unavail_Firmware = """
-    select id,firmware_type,firmware_available,firmware_status,hardware_version,firmware_version,firmware_display,firmware_normal,firmware_version_built_in,firmware_environment,firmware_detail_cns,firmware_detail_cnt,firmware_detail_en from sidusdb.tb_hardware_firmware where firmware_available=0 and uuid_ascii_code = %s and hardware_version = %s and firmware_type = %s;
+    select id,firmware_type,firmware_available,firmware_status,hardware_version,firmware_version,firmware_display,firmware_normal,firmware_version_built_in,firmware_environment,firmware_detail_cns,firmware_detail_cnt,firmware_detail_en ,firmware_released_date,firmware_updated_time from sidusdb.tb_hardware_firmware where firmware_available=0 and uuid_ascii_code = %s and hardware_version = %s and firmware_type = %s;
 """
 SQL_Hardware_Unavail_Ble_Firmware = """
     select distinct(hardware_version) from sidusdb.tb_hardware_firmware where uuid_ascii_code =%s and firmware_type = 'Ble';

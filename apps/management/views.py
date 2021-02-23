@@ -499,7 +499,7 @@ class CreatedManageProduct(GenericAPIView):
 
 
 class ManageHardWareFirmware(APIView):
-    permission_classes = [IsAdminUser]
+    # permission_classes = [IsAdminUser]
 
     def get(self, request, env, uuid):
         if env == 'pro':
@@ -576,6 +576,8 @@ class ManageHardWareFirmware(APIView):
         data['ctr'] = ctr
         data['dr'] = dr
         data['ble'] = ble
+        with open("./test.txt",'w') as f:
+            f.write(str(data))
         return Response({"status": RET.OK, "msg": Info_Map[RET.OK], "data": data})
 
     @staticmethod
