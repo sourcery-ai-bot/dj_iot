@@ -24,6 +24,7 @@ class RET:
     SESSIONERR = "4111"
     LOGINERR = "4112"
     DEPARTMENTNOTEXIST = '4113'
+    DEPARTMENTEXIST = '4114'
 
     PWDTYPEERR = '4122'
     PWDCOMMITERR = '4123'
@@ -67,6 +68,7 @@ Info_Map = {
     RET.VERIFYCODEERR: u"验证码错误或过期",
 
     RET.DEPARTMENTNOTEXIST: u'部门不存在',
+    RET.DEPARTMENTEXIST: u'部门已存在',
 
     RET.REQERR: u"非法请求或请求次数受限",
     RET.IPERR: u"IP受限",
@@ -81,46 +83,43 @@ Info_Map = {
     RET.SERVERERR: u"内部错误",
     RET.UNKOWNERR: u"未知错误",
 }
-
-# base_ip = "54.176.83.64"
-base_ip = "127.0.0.1"
 # S3 的头地址
 S3_image_url = 'https://d8ao2pdw51vzz.cloudfront.net/'
 # S3文件上传
-S3_upload_url = 'http://127.0.0.1:8000/upload/upload_single_file/'
+S3_upload_url = 'http://54.176.83.64:8000/upload/upload_single_file/'
 
 # Sidus登录网址
-Sidus_Pro_LoginUrl = 'http://127.0.0.1:8000/account/login/'
+Sidus_Pro_LoginUrl = 'http://54.176.83.64:8000/account/login/'
 
 # Sidus注册邮箱网址
-Sidus_Pro_ReEmailUrl = 'http://127.0.0.1:8000/account/get_register_code/'
+Sidus_Pro_ReEmailUrl = 'http://54.176.83.64:8000/account/get_register_code/'
 
 # Sidus 校验邮箱
-Sidus_Pro_Veridy_Reg = 'http://127.0.0.1:8000/account/verify_register_code/'
+Sidus_Pro_Veridy_Reg = 'http://54.176.83.64:8000/account/verify_register_code/'
 
 # Sidus注册网址
-Sidus_Pro_RegisterUrl = 'http://127.0.0.1:8000/account/register/'
+Sidus_Pro_RegisterUrl = 'http://54.176.83.64:8000/account/register/'
 
 # Sidus上传固件信息
-Sidus_Pro_ProductUrl = 'http://127.0.0.1:8000/product/hardware_firmware/'
+Sidus_Pro_ProductUrl = 'http://54.176.83.64:8000/product/hardware_firmware/'
 
 # Sidus上传固件产品信息
-Sidus_Pro_FirmWareProductUrl = 'http://127.0.0.1:8000/product/hardware_product/'
+Sidus_Pro_FirmWareProductUrl = 'http://54.176.83.64:8000/product/hardware_product/'
 
 # Sidus上传头像
-Sidus_Pro_Post_avatar = 'http://127.0.0.1:8000/user/upload_icon/'
+Sidus_Pro_Post_avatar = 'http://54.176.83.64:8000/user/upload_icon/'
 
 # Sidus更新用户信息
-Sidus_Pro_Post_User_info = 'http://127.0.0.1:8000/account/edit/'
+Sidus_Pro_Post_User_info = 'http://54.176.83.64:8000/account/edit/'
 
 # Sidus 更新密码
-Sidus_Pro_ChangePWD = 'http://127.0.0.1:8000/account/modify_password/'
+Sidus_Pro_ChangePWD = 'http://54.176.83.64:8000/account/modify_password/'
 
 # Sidus 获取密码验证邮箱
-Sidus_Pro_ChangePWDEmail = 'http://127.0.0.1:8000/account/get_modify_password_code/'
+Sidus_Pro_ChangePWDEmail = 'http://54.176.83.64:8000/account/get_modify_password_code/'
 
 # Sidus 邮箱登录获取验证码
-Sidus_Pro_EmailLogin = 'http://127.0.0.1:8000/account/get_login_code/'
+Sidus_Pro_EmailLogin = 'http://54.176.83.64:8000/account/get_login_code/'
 
 # SidusDev登录网址
 Sidus_Dev_LoginUrl = 'http://54.153.48.226:8000/account/login/'
