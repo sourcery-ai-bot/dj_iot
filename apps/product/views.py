@@ -36,47 +36,43 @@ class ProductList(GenericAPIView):
         db_url = Sidus_Dev_Database
 
         res = []
-        if offered_list:
-            conn, cursor = SQLHepler.sql_multi_open(db_url)
-
-            info = SQLHepler.sql_multi_fetch_all(SQL_Hardware_Product_Series_Client,
-                                                 args=(offered_list,), cursor=cursor)
-            SQLHepler.close(conn=conn, cursor=cursor)
-            if info:
-                info.sort(key=itemgetter('offered_by'))
-                for key, group in groupby(info, itemgetter('offered_by')):
-                    offered_list.remove(key)
-                    product_info = dict()
-                    product_info['product_name'] = key
-                    product_info['sub_series'] = []
-                    series_info = list(group)
-                    series_info.sort(key=itemgetter('product_series'), reverse=True)
-                    product_series_list = []
-                    for series_key, series_group in groupby(series_info, itemgetter('product_series')):
-                        sub_pro = {}
-                        if not series_key:
-                            series_key = 'UNKNOWN'
-                        product_series_list.append(series_key)
-                        sub_pro['product_series'] = series_key
-                        sub_pro['sub_info'] = list(series_group)
-                        product_info['sub_series'].append(sub_pro)
-                    # 每一个offered_by都确保有UNKNOWN
-                    if 'UNKNOWN' not in product_series_list:
-                        UNKNOWN_info = dict()
-                        UNKNOWN_info.update(product_series='UNKNOWN', sub_info=[])
-                        product_info['sub_series'].append(UNKNOWN_info)
-                    res.append(product_info)
-
-            if offered_list:
-                for last_department in offered_list:
-                    last_department_info = dict()
-                    last_department_info['product_name'] = last_department
-                    UNKNOWN_info = dict()
-                    UNKNOWN_info.update(product_series='UNKNOWN', sub_info=[])
-                    last_department_info['sub_series'] = [UNKNOWN_info]
-                    res.append(last_department_info)
-        else:
+        if not offered_list:
             return Response({"status": RET.DATAERR, "msg": Info_Map[RET.DATAERR]})
+        conn, cursor = SQLHepler.sql_multi_open(db_url)
+
+        info = SQLHepler.sql_multi_fetch_all(SQL_Hardware_Product_Series_Client,
+                                             args=(offered_list,), cursor=cursor)
+        SQLHepler.close(conn=conn, cursor=cursor)
+        if info:
+            info.sort(key=itemgetter('offered_by'))
+            for key, group in groupby(info, itemgetter('offered_by')):
+                offered_list.remove(key)
+                product_info = {'product_name': key, 'sub_series': []}
+                series_info = list(group)
+                series_info.sort(key=itemgetter('product_series'), reverse=True)
+                product_series_list = []
+                for series_key, series_group in groupby(series_info, itemgetter('product_series')):
+                    sub_pro = {}
+                    if not series_key:
+                        series_key = 'UNKNOWN'
+                    product_series_list.append(series_key)
+                    sub_pro['product_series'] = series_key
+                    sub_pro['sub_info'] = list(series_group)
+                    product_info['sub_series'].append(sub_pro)        
+                    # 每一个offered_by都确保有UNKNOWN
+                if 'UNKNOWN' not in product_series_list:
+                    UNKNOWN_info = {}
+                    UNKNOWN_info.update(product_series='UNKNOWN', sub_info=[])
+                    product_info['sub_series'].append(UNKNOWN_info)
+                res.append(product_info)
+
+        if offered_list:
+            for last_department in offered_list:
+                last_department_info = {'product_name': last_department}
+                UNKNOWN_info = {}
+                UNKNOWN_info.update(product_series='UNKNOWN', sub_info=[])
+                last_department_info['sub_series'] = [UNKNOWN_info]
+                res.append(last_department_info)
         return Response({"status": RET.OK, "msg": Info_Map[RET.OK], "data": res})
 
 
