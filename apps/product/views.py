@@ -157,13 +157,13 @@ class HardWareProduct(GenericAPIView):
 
 class HardWareFirmware(APIView):
     """固件操作"""
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, uuid):
         user = request.user
         uuid = uuid
         try:
-            # status = self.get_user_permission(user, uuid)
+            status = self.get_user_permission(user, uuid)
             data = {}
             ctr = []
             dr = []
@@ -231,12 +231,10 @@ class HardWareFirmware(APIView):
         except Exception as e:
             return Response({"msg": str(e)})
         # 构建输出数据结构
-        # data['partake_status'] = status
+        data['partake_status'] = status
         data['Ctr'] = ctr
         data['Dr'] = dr
         data['Ble'] = ble
-        with open("./test_product.txt",'w') as f:
-            f.write(str(data))
         return Response({"status": RET.OK, "msg": Info_Map[RET.OK], "data": data})
 
     @staticmethod
