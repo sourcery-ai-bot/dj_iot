@@ -128,6 +128,8 @@ class DepartmentListView(GenericAPIView):
             department_id = data.get('department_id')
             department_name = data.get('department_name')
             department_instance = self.queryset.filter(id=department_id).first()
+            if not department_instance:
+                return Response({"status": RET.DEPARTMENTNOTEXIST, "msg": Info_Map[RET.DEPARTMENTNOTEXIST]})
             department_instance.department_name = department_name
             department_instance.save()
             return Response({"status": RET.OK, "msg": Info_Map[RET.OK]})
@@ -143,10 +145,12 @@ class UpdateUserView(GenericAPIView):
 
     def put(self, request, pk):
         data = request.data
-
-        serializer = self.get_serializer(data=data, instance=self.get_object())
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        try:
+            serializer = self.get_serializer(data=data, instance=self.get_object())
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+        except Exception as e:
+            return Response({"status": RET.PARAMERR, "msg": str(e)})
         roles = data.get('roles')
         if 1 in roles:
             user = User.objects.filter(id=pk).first()
@@ -156,11 +160,11 @@ class UpdateUserView(GenericAPIView):
 
     def delete(self, request, pk):
         instance = self.get_object()
-        instance.delete()
 
         email = instance.username
         url = Sidus_Dev_Delete_User.format(email)
         requests.delete(url)
+        instance.delete()
         return Response({"status": RET.OK, "msg": "DELETE OK"})
 
 
@@ -353,6 +357,12 @@ class ManageProduct(GenericAPIView):
                 }
                 res = requests.post(Sidus_Pro_FirmWareProductUrl, data=data,
                                     headers=header).json()
+                db_url = Sidus_Pro_Database
+                conn, cursor = SQLHepler.sql_multi_open(db_url)
+                hex_info = SQLHepler.sql_multi_fetch_one(SQL_Get_Series_Hex, args=uuid_ascii_code, cursor=cursor)
+                if int(hex_info.get('count')) == 0:
+                    SQLHepler.sql_multi_execute(SQL_Insert_Series_Hex, args=data, cursor=cursor)
+                SQLHepler.close(conn=conn, cursor=cursor)
                 return Response({"status": res.get('status'), "msg": res.get('msg')})
             elif env == 'dev':
                 if not uuid_ascii_code:
@@ -362,15 +372,20 @@ class ManageProduct(GenericAPIView):
                 # 判断是否已经存在
                 res_info = SQLHepler.sql_multi_fetch_one(SQL_Firware_Product_Count, args=uuid_ascii_code,
                                                          cursor=cursor)
+                print()
                 if int(res_info.get('count')) >= 1:
                     return Response({"status": RET.PORDUCTEXIST, "msg": uuid_ascii_code + ' Already Existed'})
                 # 数据处理
                 data.update(product_updated_admin_name=user.first_name + " " + user.last_name)
                 try:
                     SQLHepler.sql_multi_execute(SQL_Insert_Firware_Product, args=data, cursor=cursor)
+                    hex_info = SQLHepler.sql_multi_fetch_one(SQL_Get_Series_Hex, args=uuid_ascii_code, cursor=cursor)
+
+                    if int(hex_info.get('count')) == 0:
+                        SQLHepler.sql_multi_execute(SQL_Insert_Series_Hex, args=data, cursor=cursor)
                     SQLHepler.close(conn=conn, cursor=cursor)
                 except Exception as e:
-                    return Response({"status": RET.PARAMERR, "msg": Info_Map[RET.PARAMERR]})
+                    return Response({"status": RET.PARAMERR, "msg": e})
                 return Response({"status": RET.OK, "msg": Info_Map[RET.OK]})
             else:
                 return Response({"status": RET.PARAMERR, "msg": Info_Map[RET.PARAMERR]})
@@ -390,6 +405,11 @@ class ManageProduct(GenericAPIView):
             else:
                 return Response({"status": RET.PARAMERR, "msg": Info_Map[RET.PARAMERR]})
 
+            product_name = data.get("product_name")
+            uuid_ascii_code = data.get("uuid_ascii_code")
+            if not (product_name and uuid_ascii_code):
+                return Response({"status": RET.PARAMLOST, "msg": Info_Map[RET.PARAMLOST]})
+
             conn, cursor = SQLHepler.sql_multi_open(db_url)
             # 判断是否已经存在
             res_info = SQLHepler.sql_multi_fetch_one(SQL_Firware_Product_Count_By_Id, args=id,
@@ -401,6 +421,9 @@ class ManageProduct(GenericAPIView):
 
             try:
                 SQLHepler.sql_multi_execute(SQL_Updatet_Firware_Product, args=data, cursor=cursor)
+
+                SQLHepler.sql_multi_execute(SQL_Update_Series,
+                                            args=(product_name, uuid_ascii_code), cursor=cursor)
                 SQLHepler.close(conn=conn, cursor=cursor)
                 return Response({"status": RET.OK, "msg": Info_Map[RET.OK]})
             except Exception as e:
@@ -428,6 +451,7 @@ class ManageProduct(GenericAPIView):
                 # 删除制定固件信息
                 SQLHepler.sql_multi_execute(SQL_Delete_Firware_UUID, args=uuid_ascii_code, cursor=cursor)
                 SQLHepler.sql_multi_execute(SQL_Delete_Firware_Product, args=uuid_ascii_code, cursor=cursor)
+                SQLHepler.sql_multi_execute(SQL_Delete_Series, args=uuid_ascii_code, cursor=cursor)
                 SQLHepler.close(conn=conn, cursor=cursor)
                 # 删除项目的创建人员以及协作人员
                 ProdPartner.objects.filter(pro_uuid=uuid_ascii_code).delete()
@@ -499,7 +523,7 @@ class CreatedManageProduct(GenericAPIView):
 
 
 class ManageHardWareFirmware(APIView):
-    # permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminUser]
 
     def get(self, request, env, uuid):
         if env == 'pro':
@@ -576,8 +600,6 @@ class ManageHardWareFirmware(APIView):
         data['ctr'] = ctr
         data['dr'] = dr
         data['ble'] = ble
-        with open("./test.txt",'w') as f:
-            f.write(str(data))
         return Response({"status": RET.OK, "msg": Info_Map[RET.OK], "data": data})
 
     @staticmethod
@@ -679,6 +701,12 @@ class ManagePublish(APIView):
                 del product_info['id']
                 # 新增此产品
                 SQLHepler.sql_multi_execute(SQL_Insert_Firware_Product, args=product_info, cursor=pro_cursor)
+                hex_info = SQLHepler.sql_multi_fetch_one(SQL_Get_Series_Hex, args=uuid_ascii_code, cursor=pro_cursor)
+                if int(hex_info.get('count')) == 0:
+                    SQLHepler.sql_multi_execute(SQL_Insert_Series_Hex,
+                                                args={"product_name": product_info.get('product_name'),
+                                                      "uuid_ascii_code": uuid_ascii_code},
+                                                cursor=pro_cursor)
 
             # 更新测试服当前的数据的status=1
             SQLHepler.sql_multi_execute(SQL_Update_Hardware_Firmware_Status, id, cursor=dev_cursor)
@@ -1029,7 +1057,6 @@ class RequestPassView(UpdateUserView):
             dev_conn, dev_cursor = SQLHepler.sql_multi_open(dev_db_url)
             dev_user_info = SQLHepler.sql_multi_fetch_one(SQL_User_Get, args=email, cursor=dev_cursor)
             if not dev_user_info:
-
                 SQLHepler.sql_multi_execute(SQL_User_Insert, args=pro_user_info, cursor=dev_cursor)
             SQLHepler.close(conn=dev_conn, cursor=dev_cursor)
         except Exception as e:
@@ -1067,7 +1094,6 @@ class PartnerView(GenericAPIView):
         if not instance:
             try:
                 info.update(pro_create=None)
-                print(info)
                 serializer = self.get_serializer(data=info)
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
@@ -1131,6 +1157,9 @@ class ClientProductList(GenericAPIView):
         data.update(product_updated_admin_name=user.first_name + " " + user.last_name, product_status=0)
         try:
             SQLHepler.sql_multi_execute(SQL_Insert_Firware_Product, args=data, cursor=cursor)
+            hex_info = SQLHepler.sql_multi_fetch_one(SQL_Get_Series_Hex, args=uuid_ascii_code, cursor=cursor)
+            if int(hex_info.get('count')) == 0:
+                SQLHepler.sql_multi_execute(SQL_Insert_Series_Hex, args=data, cursor=cursor)
             SQLHepler.close(conn=conn, cursor=cursor)
         except Exception as e:
             return Response({"status": RET.PARAMERR, "msg": str(e)})

@@ -1,13 +1,7 @@
 from rest_framework import serializers
-from product.models import Product, ProdPartner, FirmwareProduct
+from product.models import ProdPartner, FirmwareProduct
 from user.serializers import UserSerializer
 from user.models import User
-
-
-class ProductSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Product
-        exclude = ('create_time', 'update_time', 'id')
 
 
 class ProdPartnerSerializer(serializers.ModelSerializer):

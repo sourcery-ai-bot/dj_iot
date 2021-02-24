@@ -1,19 +1,18 @@
 import requests
+import time
 from rest_framework_jwt.settings import api_settings
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.generics import GenericAPIView, RetrieveAPIView, UpdateAPIView
+from rest_framework.generics import GenericAPIView, RetrieveAPIView
 from utils.request_sidus import client_post_mutipart_formdata_requests
 from utils.constants import *
 from utils.request_sidus import SQLHepler
 from user.models import User, RequestInfo
 from .serializers import CreateUserSerializer, UpdateUserSerializer, UserSerializer, UpdateUserPWDSerializer, \
     RequestSerializer
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.authentication import BasicAuthentication, TokenAuthentication, SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 from utils.sql_sentences import SQL_User_info
 from management.views import DepartmentsView
-import base64
 
 
 class UserLoginView(APIView):
@@ -46,6 +45,8 @@ class UserLoginView(APIView):
             user = User.objects.filter(username=email).first()
             # 没有此用户,则创建本地用户
             if user is None:
+                if not info.get("password"):
+                    info.update(password=str(time.time()))
                 serializer = CreateUserSerializer(data=info)
                 try:
                     serializer.is_valid(raise_exception=True)
@@ -89,7 +90,6 @@ class UserRegEmailView(APIView):
     """
 
     def post(self, request):
-        print(1)
         info = request.data
         response_data = client_post_mutipart_formdata_requests(Sidus_Pro_ReEmailUrl, info)
         response_status = response_data.get('status', '')
@@ -110,15 +110,21 @@ class UserRegisterView(APIView):
 
     def post(self, request):
         info = request.data.copy()
+        email = info.get('email', None)
+        verification_code = info.get('verification_code')
+        if not (email and verification_code):
+            return Response({"status": RET.PARAMLOST, "msg": "参数缺失"})
+
         info_dict = {
             'username': info.get('email', None),
             'password': info.get('password', None),
             'first_name': info.get('first_name', None),
             'last_name': info.get('last_name', None),
-            'email': info.get('email', None),
+            'email': email,
             'avatar_color': info.get('avatar_color', None)
         }
-        info.update(occupation='16')
+
+        info.update(occupation='16', email=email.strip(), verification_code=verification_code.strip())
         response_data = client_post_mutipart_formdata_requests(Sidus_Pro_RegisterUrl, info)
         response_status = response_data.get('status', '')
         if str(response_status) == '200':
@@ -138,7 +144,6 @@ class VerifyRegInfo(APIView):
     """调用，校验邮箱注册验证码"""
 
     def post(self, request):
-        print(1)
         info = request.data
         response_data = client_post_mutipart_formdata_requests(Sidus_Pro_Veridy_Reg, info)
         response_status = response_data.get('status', '')
