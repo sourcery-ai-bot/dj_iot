@@ -80,18 +80,28 @@ WSGI_APPLICATION = 'dj_iot.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'HOST': '172.17.0.2',
+#         'PORT': 3306,
+#         'USER': 'sidusdb',
+#         'PASSWORD': 'Sidus&futurelab',
+#         'NAME': 'iot',
+#         'CHARSET': 'utf8'
+#     }
+# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'HOST': '172.17.0.2',
+        'HOST': '192.168.3.17',
         'PORT': 3306,
-        'USER': 'sidusdb',
-        'PASSWORD': 'Sidus&futurelab',
+        'USER': 'root',
+        'PASSWORD': '123456',
         'NAME': 'iot',
         'CHARSET': 'utf8'
     }
 }
-
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
 
